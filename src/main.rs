@@ -32,7 +32,7 @@ fn main() {
             //enum_token().expect("[!] [!] Failed to run enum_token()");
             let res = enum_token();
             match res {
-                Ok(_s) => { () },
+                Ok(_s) => { println!("{}",_s); },
                 Err(err) => error!("[!] Failed to run enum_token(): {err}"),
             }
         }

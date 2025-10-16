@@ -1,6 +1,8 @@
 
 use std::{io::Error, mem::size_of};
 use std::ffi::{c_void, c_ulong};
+use std::fmt::Write as _;
+
 use windows_sys::Win32::Foundation::{INVALID_HANDLE_VALUE, FALSE};
 use windows_sys::Win32::System::Memory::LocalAlloc;
 use std::ptr::null_mut;
@@ -174,7 +176,8 @@ pub fn get_token_session_id(token: *mut Token) -> Result<bool, String> {
 }
 
 /// Function tu enumerate all Tokens need SeDebugPrivilege enabled
-pub fn enum_token() -> Result<bool, String>{
+pub fn enum_token() -> Result<String, String>{
+    let mut _output = String::new();
     unsafe {
         let hsnapshot =  CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
         let mut lppe: PROCESSENTRY32 = std::mem::zeroed::<PROCESSENTRY32>();
@@ -184,7 +187,7 @@ pub fn enum_token() -> Result<bool, String>{
             loop {
                 if Process32Next(hsnapshot, &mut lppe) == 0 {
                     // No more process in list
-                    return Ok(true);
+                    return Ok(_output);
                 };
 
                 // Check if process is in blacklist
@@ -221,7 +224,8 @@ pub fn enum_token() -> Result<bool, String>{
                 if let Ok(_) = get_token_user_info(&mut token){
                     if let Ok(_) = get_token_session_id(&mut token){
                         if let Ok(_) = get_token_information(&mut token){
-                            println!("{token}")
+                            writeln!(&mut _output, "{token}").ok();
+                            // println!("{token}")
                         }
                     } else {
                         CloseHandle(process_handle);
